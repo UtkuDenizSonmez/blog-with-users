@@ -148,6 +148,7 @@ def login():
 
 
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('get_all_posts'))
@@ -231,4 +232,4 @@ def delete_post(post_id):
 
 
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(debug=True)
