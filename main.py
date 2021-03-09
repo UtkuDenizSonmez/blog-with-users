@@ -12,6 +12,8 @@ from functools import wraps
 import os
 import smtplib
 
+MY_EMAIL = os.environ.get("MY_EMAIL")
+MY_PASS = os.environ.get("MY_PASS")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY")
@@ -81,6 +83,18 @@ class Comment(db.Model):
 
 
 db.create_all()
+
+
+def send_mail(name, email, phone, message):
+    email_message = f"Name: {name}\nEmail: {email}\nPhone: {phone}\nMessage: {message}"
+    with smtplib.SMTP("smtp.gmail.com", port=587) as connection:
+        connection.starttls()
+        connection.login(user=MY_EMAIL, password=MY_PASS)
+        connection.sendmail(
+            from_addr=MY_EMAIL,
+            to_addrs=MY_EMAIL,
+            msg=f"Subject:Mail From Website\n\n{email_message}"
+        )
 
 
 @login_manager.user_loader
@@ -178,9 +192,19 @@ def about():
     return render_template("about.html")
 
 
-@app.route("/contact")
+@app.route("/contact", methods=["GET", "POST"])
 def contact():
-    return render_template("contact.html")
+    if request.method == "POST":
+        data = request.form
+        username = data["username"]
+        email = data["email"]
+        phone_num = data["phone-number"]
+        message = data["message"]
+
+        send_mail(name=username, email=email, phone=phone_num, message=message)
+        return render_template("contact.html", msg_send=True)
+
+    return render_template("contact.html", msg_send=False)
 
 
 @app.route("/new-post", methods=["GET", "POST"])
